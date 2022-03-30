@@ -23,7 +23,13 @@ class Game(object):
         pygame.display.set_caption("Breakout")
         pygame.mouse.set_visible(False)
         
-        
+        self.impact_sound = pygame.mixer.Sound('impact.wav')
+        self.impact_sound.set_volume(0.1)
+        self.fail_sound = pygame.mixer.Sound('fail.wav')
+        self.fail_sound.set_volume(0.1)
+        self.pickup_sound = pygame.mixer.Sound('pickup.wav')
+        self.pickup_sound.set_volume(0.1)
+
         self.brick_cooldown = 10
         self.font = pygame.font.SysFont('Arial Black', 16, True, False)
         self.player = Player()
@@ -61,6 +67,7 @@ class Game(object):
         if self.ball.pos.y <= TOP_BUFFER + len(ROWS) * BRICKHEIGHT:
             hit_bricks = pygame.sprite.spritecollide(self.ball, self.brick_group, False)
             if hit_bricks and self.brick_cooldown == 0:
+                self.impact_sound.play()
                 self.brick_cooldown = FPS //2 - int(self.ball.speed  * 1.5)
                 self.ball.dir.y *= -1
                 self.player.score += 10
@@ -73,6 +80,7 @@ class Game(object):
                     self.ball.speed += 1
 
         if pygame.sprite.collide_rect(self.ball, self.player) and self.ball.dir.y == 1:
+            self.pickup_sound.play()
             if self.player.pos.x - 40 < self.ball.pos.x <= self.player.pos.x - 20:
                 self.ball.dir = pygame.math.Vector2(-2, -1)
             elif self.player.pos.x - 20 < self.ball.pos.x <= self.player.pos.x - 10:
@@ -87,6 +95,7 @@ class Game(object):
                 self.ball.dir = pygame.math.Vector2(2, -1)
         
         if self.ball.pos.x + 4 >= WIDTH or self.ball.pos.x - 4 <= 0:
+            self.impact_sound.play()
             self.ball.dir.x *= -1
         elif self.ball.pos.y + 4 >= HEIGHT:
             # self.ball.pos.y = HEIGHT - 8
@@ -94,9 +103,11 @@ class Game(object):
             self.player.lives -= 1
             self.playing = False
             self.ball.set_initial_dir()
+            self.fail_sound.play()
         elif self.ball.pos.y-4 <= 0:
             self.ball.dir.y *= -1
             self.ball.pos.y = 5
+            self.impact_sound.play()
 
     def write_text(self, text, pos):
         text_surface = self.font.render(text, False, WHITE)
