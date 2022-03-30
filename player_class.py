@@ -1,4 +1,4 @@
-import pygame
+import pygame, random
 from settings import *
 
 class Player(pygame.sprite.Sprite):
@@ -12,11 +12,14 @@ class Player(pygame.sprite.Sprite):
         self.score = 0
         self.lives = LIVES
 
-    def update(self):
-        if self.pos.x <0:
-            self.pos.x = 0
-        if self.pos.x > WIDTH:
-            self.pos.x = WIDTH
+    def update(self, ball_pos):
+        if DEMO:
+            self.pos.x = ball_pos.x + random.randint(-5,5)
+        else:
+            if self.pos.x <0:
+                self.pos.x = 0
+            if self.pos.x > WIDTH:
+                self.pos.x = WIDTH
         self.rect.midbottom = self.pos
 
     def draw(self, screen):

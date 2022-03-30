@@ -33,6 +33,7 @@ class Game(object):
         self.playing = False
         self.player.lives = LIVES
         self.player.score = 0
+        self.hit_bricks = 0
         self.brick_group = pygame.sprite.Group()
         self.setup_bricks()
         self.ball = Ball(self.player.rect.center)    
@@ -60,10 +61,16 @@ class Game(object):
         if self.ball.pos.y <= TOP_BUFFER + len(ROWS) * BRICKHEIGHT:
             hit_bricks = pygame.sprite.spritecollide(self.ball, self.brick_group, False)
             if hit_bricks and self.brick_cooldown == 0:
-                self.brick_cooldown = FPS/2
+                self.brick_cooldown = FPS //2 - int(self.ball.speed  * 1.5)
                 self.ball.dir.y *= -1
                 self.player.score += 10
                 self.brick_group.remove(hit_bricks[0])
+                if self.player.score == 50:
+                    self.ball.speed += 1
+                if self.player.score == 400:
+                    self.ball.speed += 1
+                if self.player.score == 750:
+                    self.ball.speed += 1
 
         if pygame.sprite.collide_rect(self.ball, self.player) and self.ball.dir.y == 1:
             if self.player.pos.x - 40 < self.ball.pos.x <= self.player.pos.x - 20:
@@ -104,13 +111,14 @@ class Game(object):
         if self.brick_cooldown > 0:
             self.brick_cooldown -= 1
         self.ball.update(self.playing, self.player.pos)
-        self.player.update()
+        self.player.update(self.ball.pos)
 
     def render(self):
         self.screen.blit(self.background, (0,0))
         self.brick_group.draw(self.screen)
         self.ball.draw(self.screen)
         self.player.draw(self.screen)
+        self.write_text(f'{FPS //2 - int(self.ball.speed  * 1.5)}', (500,0))
         self.display_score()
 
 
@@ -118,6 +126,8 @@ class Game(object):
         self.init_game()
         while not self.gameover:
             if self.player.lives <=0:
+                self.gameover = True
+            if self.player.score == 1000:
                 self.gameover = True
             self.check_events()
             self.collisions()
