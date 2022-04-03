@@ -44,7 +44,7 @@ class Game(object):
         self.hit_bricks = 0
         self.brick_group = pygame.sprite.Group()
         self.setup_bricks()
-        self.ball = Ball(self.player.rect.center)    
+        self.ball = Ball(self.player.rect.midtop)
 
     def setup_bricks(self):
         for y,row in enumerate(ROWS):

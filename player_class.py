@@ -12,7 +12,7 @@ class Player(pygame.sprite.Sprite):
 
     def create_player(self, width):
         self.image = pygame.Surface((width,5))
-        self.image.fill(WHITE)
+        self.image.fill(BLUE)
         self.rect = self.image.get_rect(midbottom = self.pos)
 
     def update(self, ball_pos):

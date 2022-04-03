@@ -7,8 +7,10 @@ class Ball(pygame.sprite.Sprite):
         super().__init__()
         self.radius = 4
         self.pos = pygame.math.Vector2(pos)
-        self.image = pygame.Surface((self.radius,self.radius))
-        self.image.fill(CYAN)
+        self.image = pygame.Surface((8,8))
+
+        pygame.draw.circle(self.image, GREY, (4,4), self.radius)
+        # self.image.fill(GREY)
         self.rect = self.image.get_rect(midbottom = pos)
     
         self.speed = SPEED
@@ -19,7 +21,8 @@ class Ball(pygame.sprite.Sprite):
 
     def update(self, playing, player_pos):
         if not playing:
-            self.pos.y = HEIGHT - 15
+
+            self.pos.y = HEIGHT - 17
             self.pos.x = player_pos.x
             self.rect.x = self.pos.x
             self.rect.y = self.pos.y
