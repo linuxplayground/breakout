@@ -34,6 +34,8 @@ class Game(object):
         self.font = pygame.font.SysFont('Arial Black', 16, True, False)
         self.player = Player()
 
+        self.high_score = 0
+
     def init_game(self):
         self.gameover = False
         self.playing = False
@@ -45,9 +47,9 @@ class Game(object):
         self.ball = Ball(self.player.rect.center)    
 
     def setup_bricks(self):
-        for y in range(5):
+        for y,row in enumerate(ROWS):
             for x in range(WIDTH // BRICKWIDTH):
-                Brick((x * BRICKWIDTH, y * BRICKHEIGHT + TOP_BUFFER), ROWS[y], self.brick_group)
+                Brick((x * BRICKWIDTH, y * BRICKHEIGHT + TOP_BUFFER), row, self.brick_group)
             
     def check_events(self):
         events = pygame.event.get()
@@ -64,7 +66,7 @@ class Game(object):
 
     def collisions(self):
 
-        if self.ball.pos.y <= TOP_BUFFER + len(ROWS) * BRICKHEIGHT:
+        if self.ball.pos.y <= (TOP_BUFFER + len(ROWS) * BRICKHEIGHT):
             hit_bricks = pygame.sprite.spritecollide(self.ball, self.brick_group, False)
             if hit_bricks and self.brick_cooldown == 0:
                 self.impact_sound.play()
@@ -72,6 +74,9 @@ class Game(object):
                 self.ball.dir.y *= -1
                 self.player.score += 10
                 self.brick_group.remove(hit_bricks[0])
+
+                if self.high_score < self.player.score:
+                    self.high_score = self.player.score
                 if self.player.score == 50:
                     self.ball.speed += 1
                 if self.player.score == 400:
@@ -94,29 +99,33 @@ class Game(object):
             else:
                 self.ball.dir = pygame.math.Vector2(2, -1)
         
-        if self.ball.pos.x + 4 >= WIDTH or self.ball.pos.x - 4 <= 0:
+        if self.playing and (self.ball.pos.x + self.ball.radius //2 >= WIDTH or self.ball.pos.x - self.ball.radius //2 <= 0):
             self.impact_sound.play()
             self.ball.dir.x *= -1
-        elif self.ball.pos.y + 4 >= HEIGHT:
-            # self.ball.pos.y = HEIGHT - 8
-            # self.ball.dir.y *= -1
+        elif self.ball.pos.y + self.ball.radius //2 >= HEIGHT:
             self.player.lives -= 1
             self.playing = False
             self.ball.set_initial_dir()
             self.fail_sound.play()
-        elif self.ball.pos.y-4 <= 0:
+        elif self.ball.pos.y-self.ball.radius //2 <= 0:
             self.ball.dir.y *= -1
             self.ball.pos.y = 5
             self.impact_sound.play()
+            self.player.create_player(45)
 
-    def write_text(self, text, pos):
+    def write_text(self, text, pos, align_right=False):
         text_surface = self.font.render(text, False, WHITE)
-        text_rect = text_surface.get_rect(topleft = pos)
+        if align_right:
+            text_rect = text_surface.get_rect(topright = pos)
+        else:
+            text_rect = text_surface.get_rect(topleft = pos)
         self.screen.blit(text_surface, text_rect)
 
     def display_score(self):
         self.write_text(f'Score: {self.player.score}', (0,0))
-        self.write_text(f'Lives: {self.player.lives}', (WIDTH-200, 0))
+        self.write_text(f'Lives: {self.player.lives}', (WIDTH-400, 0))
+        self.write_text(f'High Score: {self.high_score}', (WIDTH,0), align_right=True)
+
 
     def update(self):
         if self.brick_cooldown > 0:
@@ -129,16 +138,14 @@ class Game(object):
         self.brick_group.draw(self.screen)
         self.ball.draw(self.screen)
         self.player.draw(self.screen)
-        self.write_text(f'{FPS //2 - int(self.ball.speed  * 1.5)}', (500,0))
+        #self.write_text(f'{FPS //2 - int(self.ball.speed  * 1.5)}', (500,0))
         self.display_score()
 
 
     def play(self):
         self.init_game()
         while not self.gameover:
-            if self.player.lives <=0:
-                self.gameover = True
-            if self.player.score == 1000:
+            if self.player.lives <=0 or len(self.brick_group) == 0:
                 self.gameover = True
             self.check_events()
             self.collisions()

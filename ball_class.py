@@ -5,8 +5,9 @@ from settings import *
 class Ball(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
+        self.radius = 4
         self.pos = pygame.math.Vector2(pos)
-        self.image = pygame.Surface((8,8))
+        self.image = pygame.Surface((self.radius,self.radius))
         self.image.fill(CYAN)
         self.rect = self.image.get_rect(midbottom = pos)
     
