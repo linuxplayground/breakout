@@ -3,6 +3,7 @@ import pygame, sys
 from brick_class import Brick
 from player_class import Player
 from ball_class import Ball
+from particles import Explosion
 
 from settings import *
 
@@ -33,8 +34,10 @@ class Game(object):
         self.brick_cooldown = 10
         self.font = pygame.font.SysFont('Arial Black', 16, True, False)
         self.player = Player()
-
+        self.explosion_group = pygame.sprite.Group()
+        self.explosion_active = False
         self.high_score = 0
+        self.first_hit_roof = False
 
     def init_game(self):
         self.gameover = False
@@ -44,6 +47,7 @@ class Game(object):
         self.hit_bricks = 0
         self.brick_group = pygame.sprite.Group()
         self.setup_bricks()
+        self.player.create_player(65)
         self.ball = Ball(self.player.rect.midtop)
 
     def setup_bricks(self):
@@ -66,6 +70,7 @@ class Game(object):
 
     def collisions(self):
 
+        # Check brick collision
         if self.ball.pos.y <= (TOP_BUFFER + len(ROWS) * BRICKHEIGHT):
             hit_bricks = pygame.sprite.spritecollide(self.ball, self.brick_group, False)
             if hit_bricks and self.brick_cooldown == 0:
@@ -73,6 +78,9 @@ class Game(object):
                 self.brick_cooldown = FPS //2 - int(self.ball.speed  * 1.5)
                 self.ball.dir.y *= -1
                 self.player.score += 10
+                for _ in range(20):
+                    self.explosion_group.add(Explosion(hit_bricks[0].rect.center[0], hit_bricks[0].rect.center[1], self.screen, COLORS[hit_bricks[0].color]))
+                self.explosion_active = True
                 self.brick_group.remove(hit_bricks[0])
 
                 if self.high_score < self.player.score:
@@ -82,8 +90,10 @@ class Game(object):
                 if self.player.score == 400:
                     self.ball.speed += 1
                 if self.player.score == 750:
+                    self.add_life()
                     self.ball.speed += 1
 
+        # Check Player Collision
         if pygame.sprite.collide_rect(self.ball, self.player) and self.ball.dir.y == 1:
             self.pickup_sound.play()
             if self.player.pos.x - 40 < self.ball.pos.x <= self.player.pos.x - 20:
@@ -99,6 +109,7 @@ class Game(object):
             else:
                 self.ball.dir = pygame.math.Vector2(2, -1)
         
+        # Check Wall Collision
         if self.playing and (self.ball.pos.x + self.ball.radius //2 >= WIDTH or self.ball.pos.x - self.ball.radius //2 <= 0):
             self.impact_sound.play()
             self.ball.dir.x *= -1
@@ -111,7 +122,16 @@ class Game(object):
             self.ball.dir.y *= -1
             self.ball.pos.y = 5
             self.impact_sound.play()
-            self.player.create_player(45)
+            if not self.first_hit_roof:
+                self.player.create_player(45)
+                self.add_life()
+                self.first_hit_roof = True
+
+    def add_life(self):
+        self.player.lives += 1
+        for _ in range(5):
+            self.pickup_sound.play()
+            pygame.time.wait(120)
 
     def write_text(self, text, pos, align_right=False):
         text_surface = self.font.render(text, False, WHITE)
@@ -136,9 +156,10 @@ class Game(object):
     def render(self):
         self.screen.blit(self.background, (0,0))
         self.brick_group.draw(self.screen)
-        self.ball.draw(self.screen)
+        self.ball.draw(self.screen, self.playing)
         self.player.draw(self.screen)
         #self.write_text(f'{FPS //2 - int(self.ball.speed  * 1.5)}', (500,0))
+        self.explosion_group.update()
         self.display_score()
 
 

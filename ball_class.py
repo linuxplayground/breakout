@@ -1,5 +1,6 @@
 import pygame
 from random import choice
+from particles import Trail
 from settings import *
 
 class Ball(pygame.sprite.Sprite):
@@ -8,6 +9,7 @@ class Ball(pygame.sprite.Sprite):
         self.radius = 4
         self.pos = pygame.math.Vector2(pos)
         self.image = pygame.Surface((8,8))
+        self.trail_group = pygame.sprite.Group()
 
         pygame.draw.circle(self.image, GREY, (4,4), self.radius)
         # self.image.fill(GREY)
@@ -30,5 +32,8 @@ class Ball(pygame.sprite.Sprite):
             self.pos += self.dir.normalize() * self.speed
             self.rect.center = self.pos
 
-    def draw(self, screen):
+    def draw(self, screen, playing = False):
         screen.blit(self.image, self.rect)
+        if playing:
+            self.trail_group.add(Trail(self.pos, GREY, screen, self.dir))
+            self.trail_group.update()

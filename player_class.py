@@ -19,10 +19,10 @@ class Player(pygame.sprite.Sprite):
         if DEMO:
             self.pos.x = ball_pos.x# + random.randint(-5,5)
         else:
-            if self.pos.x <0:
-                self.pos.x = 0
-            if self.pos.x > WIDTH:
-                self.pos.x = WIDTH
+            if self.pos.x <0 + self.rect.width //2:
+                self.pos.x = 0 + self.rect.width //2
+            if self.pos.x > WIDTH - self.rect.width //2:
+                self.pos.x = WIDTH - self.rect.width //2
         self.rect.midbottom = self.pos
 
     def draw(self, screen):
