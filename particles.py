@@ -27,7 +27,7 @@ class Explosion(pygame.sprite.Sprite):
         self.gravity += 0.5
         self.size -= 0.2
         self.lifetime += 1
-        self.color = reduceColor(self.color, 6)
+        # self.color = reduceColor(self.color, 6)
         if self.lifetime <= self.life:
             self.x += self.x_vel
             self.y += self.y_vel + self.gravity
